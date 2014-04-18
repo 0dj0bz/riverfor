@@ -1,5 +1,7 @@
 breed [ droplets droplet]
 
+droplets-own [dsize]
+
 to setup-world
   clear-all
   ask patches at-points [ [0 0 -16] ]
@@ -13,6 +15,7 @@ to make-rain
   
   create-droplets 1
   [
+    set dsize 1
     setxyz 0 0 16
     set shape "circle"
     set color blue
@@ -31,7 +34,11 @@ to droplet-fall
       set zcor zcor - 1
     ]
     
-    accumulate-droplets
+    ask patch 0 0 -16 
+    [ 
+      accumulate-droplets
+    ]
+    
   ]
   
 end
@@ -57,7 +64,30 @@ end
 to accumulate-droplets
   ;; get the aggregate size of all droplets in the current location
   
-  show [ count turtles-at 0 0 0 ] of turtle 0
+  if ( count turtles-here > 1 )
+  [
+    
+
+
+    ask one-of turtles-here 
+    [ 
+        set dsize sum [dsize] of turtles-here
+        
+        show count turtles-here
+        
+        ask other turtles-here
+        [
+          die
+        ]
+        
+        show count turtles-here
+
+    ]
+    
+    show sum [dsize] of turtles-here
+    
+    
+  ]
   
   ;; kill all existing droplets in the current location
   
