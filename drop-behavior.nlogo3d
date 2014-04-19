@@ -17,7 +17,7 @@ to make-rain
   create-droplets 1
   [
     set dsize 1
-    setxyz 0 0 16
+    setxyz random-xcor random-ycor 16
     set shape "circle"
     set color blue
   ]
@@ -37,14 +37,14 @@ to droplet-fall
     
     accumulate-droplets
     
-       
+    
   ]
   
   ask patches
   [
     set saturation (count turtles-here)
   ]
-
+  
   
 end
 
