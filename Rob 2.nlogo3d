@@ -7,7 +7,7 @@ globals [agentcolor]
 ;; hardness  - represents the resistance to erosion by water - 0 to 1
 ;; pcteroded - the amount of the patch eroded by water - 0 to 1
 
-patches-own [hardness]
+patches-own [hardness saturation]
 
 ;; Agents
 ;; Droplet - a droplet of water that falls as precipitation.  
@@ -29,6 +29,13 @@ to simulate
     ]
 
     update-drops
+    
+  
+  ask patches
+  [
+    set saturation (count turtles-here)
+  ]
+
     tick
   ;;]
   
@@ -42,29 +49,56 @@ to update-drops
   [
     let curredval item 0 pcolor
     
-    ifelse (curredval = 0 and velocity = [0 0 -9])
+    if (curredval = 0 and velocity = [0 0 -9])
     [
       set zcor zcor - 1
     ]
     ;; else
+;    [
+;      let oldredvalue item 0 pcolor
+;      let oldgrnvalue item 1 pcolor
+;      let oldbluvalue item 2 pcolor
+;      
+;      set oldredvalue oldredvalue - 10
+;      set oldbluvalue oldbluvalue - 10
+;      set oldgrnvalue oldgrnvalue - 10
+;      
+;      set pcolor replace-item 0 pcolor oldredvalue
+;      set pcolor replace-item 1 pcolor oldgrnvalue
+;      set pcolor replace-item 2 pcolor oldbluvalue
+;      
+;    ]
+;    
+;    if zcor = -17
+;    [ die]
+
+
+    accumulate-droplets
+    
+  ]
+  
+  ask patches
+  [
+    set saturation (count turtles-here)
+  ]
+
+  
+end
+
+
+to accumulate-droplets
+  
+  if ( count turtles-here > 1 )
+  [
+    
+    set saturation (count turtles-here)
+    
+    ask turtles-here
     [
-      let oldredvalue item 0 pcolor
-      let oldgrnvalue item 1 pcolor
-      let oldbluvalue item 2 pcolor
       
-      set oldredvalue oldredvalue - 10
-      set oldbluvalue oldbluvalue - 10
-      set oldgrnvalue oldgrnvalue - 10
-      
-      set pcolor replace-item 0 pcolor oldredvalue
-      set pcolor replace-item 1 pcolor oldgrnvalue
-      set pcolor replace-item 2 pcolor oldbluvalue
+      downhill4 saturation
       
     ]
-    
-    if zcor = -17
-    [ die]
-    
   ]
   
 end
@@ -260,7 +294,6 @@ to coalesce-terrain
         ]
  
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 0
