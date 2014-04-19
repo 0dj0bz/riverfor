@@ -1,6 +1,7 @@
 breed [ droplets droplet]
 
 droplets-own [dsize]
+patches-own [ saturation ]
 
 to setup-world
   clear-all
@@ -34,12 +35,16 @@ to droplet-fall
       set zcor zcor - 1
     ]
     
-    ask patch 0 0 -16 
-    [ 
-      accumulate-droplets
-    ]
+    accumulate-droplets
     
+       
   ]
+  
+  ask patches
+  [
+    set saturation (count turtles-here)
+  ]
+
   
 end
 
@@ -64,31 +69,43 @@ end
 to accumulate-droplets
   ;; get the aggregate size of all droplets in the current location
   
-  if ( count turtles-here > 1 )
+  ;; 
+  
+  ifelse ( count turtles-here > 1 )
   [
     
-
-
-    ask one-of turtles-here 
-    [ 
-        set dsize sum [dsize] of turtles-here
-        
-        show count turtles-here
-        
-        ask other turtles-here
-        [
-          die
-        ]
-        
-        show count turtles-here
-
+    set saturation (count turtles-here)
+    
+    ask turtles-here
+    [
+      
+      downhill4 saturation
+      
     ]
     
-    show sum [dsize] of turtles-here
-    
+
+;    ask one-of turtles-here 
+;    [ 
+;        set dsize sum [dsize] of turtles-here
+;        
+;        show count turtles-here
+;        
+;        ask other turtles-here
+;        [
+;          die
+;        ]
+;        
+;        show count turtles-here
+;
+;    ]
+;    
+;    show sum [dsize] of turtles-here
     
   ]
+  ;;else
+  [  
   
+  ]
   ;; kill all existing droplets in the current location
   
   ;; make a new droplet with the aggregate volume
