@@ -7,37 +7,39 @@ globals [agentcolor]
 ;; hardness  - represents the resistance to erosion by water - 0 to 1
 ;; pcteroded - the amount of the patch eroded by water - 0 to 1
 
-patches-own [hardness saturation]
+patches-own [hardness saturation elevation]
 
 ;; Agents
 ;; Droplet - a droplet of water that falls as precipitation.  
 ;; A droplet has the following properties:
 ;; viscosity - represents the ease with which water flows
 ;; velocity  - represents the speed with which a water droplet flows
-droplets-own [velocity]
+droplets-own [velocity lastx lasty lastz ]
 
 
 to simulate
   
-    create-droplets 1
-    [
-      setxyz random-xcor random-ycor 16
-      set color agentcolor
-      
-      set shape "circle"
-      set velocity [0 0 -9]
-    ]
+   create-droplets 1
+   [
+     setxyz (round random-xcor) (round random-ycor) 16
+     set color agentcolor
+     
+     set shape "circle"
+     set velocity [0 0 -9]
+   ]
 
-    update-drops
-    
-  
-  ask patches
-  [
-    set saturation (count turtles-here)
-  ]
+   update-drops
+   
+   distribute-droplets
 
-    tick
-  ;;]
+ 
+   ask patches
+   [
+     set saturation (count turtles-here)
+   ]
+
+   tick
+
   
   
 end
@@ -49,31 +51,16 @@ to update-drops
   [
     let curredval item 0 pcolor
     
-    if (curredval = 0 and velocity = [0 0 -9])
+    ;;if (curredval = 0 and velocity = [0 0 -9])
+    if (hardness <= 0 and velocity = [0 0 -9])
     [
       set zcor zcor - 1
     ]
-    ;; else
-;    [
-;      let oldredvalue item 0 pcolor
-;      let oldgrnvalue item 1 pcolor
-;      let oldbluvalue item 2 pcolor
-;      
-;      set oldredvalue oldredvalue - 10
-;      set oldbluvalue oldbluvalue - 10
-;      set oldgrnvalue oldgrnvalue - 10
-;      
-;      set pcolor replace-item 0 pcolor oldredvalue
-;      set pcolor replace-item 1 pcolor oldgrnvalue
-;      set pcolor replace-item 2 pcolor oldbluvalue
-;      
-;    ]
-;    
-;    if zcor = -17
-;    [ die]
+
 
 
     accumulate-droplets
+    
     
   ]
   
@@ -96,10 +83,24 @@ to accumulate-droplets
     ask turtles-here
     [
       
+      set lastx xcor
+      set lasty ycor
+      set lastz zcor
+      
       downhill4 saturation
       
-    ]
-  ]
+      
+      if ( (lastx = 16 and xcor = -1) or (lastx = -1 and xcor = 16) or
+         (lasty = 16 and ycor = -1) or (lasty = -1 and ycor = 16) )
+      [
+        die 
+      ] ;; if ( (lastx...     
+      
+    ]  ;; ask turtles-here
+    
+  ]  ;; if (count turtles-here > 1)
+  
+
   
 end
 
@@ -109,9 +110,21 @@ to drop-fall
   
 end
 
-to distribute-drops
-  ;; this procedure governs the distribution of raindrops once they are on the ground
+to distribute-droplets
+  ;; this procedure governs the distribution of droplets once they are on the ground
   
+  ask turtles
+  [
+      downhill4 elevation
+      
+      if ( (lastx = 16 and xcor = -1) or (lastx = -1 and xcor = 16) or
+         (lasty = 16 and ycor = -1) or (lasty = -1 and ycor = 16) )
+      [
+        die 
+      ] ;; if ( (lastx....
+      
+  ] ;; ask turtles
+
 end
 
 to erode-soil
@@ -141,6 +154,7 @@ to setup
         ask patch xdim ydim zdim
         [
           set pcolor [0 255 255 0]
+          set elevation pzcor
           set hardness -255
         ]
         
@@ -164,8 +178,9 @@ to setup
         ask patch xdim ydim zdim
         [
           set hardness random 9
+          set elevation pzcor
           set pcolor [120 120 120 80]
-          ;;set pcolor 9 + (5 * hardness )
+          
         ]
         
         set xdim xdim + 1
@@ -199,59 +214,88 @@ to show-agents
   ask turtles [ set color agentcolor ]
 end
 
-to create-terrain
-  let xdim -16
-  let ydim -16
-  let zdim 16
-
-  ;; set all atmospheric patches to color [0 0 0 0]
-  repeat 16
+to hide-patches
+ 
+  ask patches 
   [
-    repeat 33
+    if (hardness > 0)
     [
-      repeat 33
-      [
-        ask patch xdim ydim zdim
-        [
-          set pcolor [0 0 0 0]
-        ]
-        
-        set xdim xdim + 1
-        if xdim > 16 [set xdim -16]
-        tick
-      ]
-      set ydim ydim + 1
-      if ydim > 16 [set ydim -16] 
+      set pcolor [ 0 0 0 0 ] 
     ]
-    set zdim zdim - 1
   ]
+  
+end
 
-  ;; set all earth patches to color [120 120 120 80]
-  repeat 17
+
+to show-patches
+  
+  ask patches 
   [
-    repeat 33
+    if (hardness > 0)
     [
-      repeat 33
-      [
-        ask patch xdim ydim zdim
-        [
-          set hardness random 9
-          set pcolor [ 120 120 120 80]
-          ;;set pcolor 9 + (5 * hardness )
-        ]
-        
-        set xdim xdim + 1
-        if xdim > 16 [set xdim -16]
-        tick
-      ]
-      set ydim ydim + 1
-      if ydim > 16 [set ydim -16] 
+      set pcolor [ 120 120 120 80] 
     ]
-    set zdim zdim - 1
   ]
   
   
 end
+
+
+;to create-terrain
+;  let xdim -16
+;  let ydim -16
+;  let zdim 16
+;
+;  ;; set all atmospheric patches to color [0 0 0 0]
+;  repeat 16
+;  [
+;    repeat 33
+;    [
+;      repeat 33
+;      [
+;        ask patch xdim ydim zdim
+;        [
+;          set pcolor [0 0 0 0]
+;          set elevation pzcor
+;          set hardness -255
+;        ]
+;        
+;        set xdim xdim + 1
+;        if xdim > 16 [set xdim -16]
+;        tick
+;      ]
+;      set ydim ydim + 1
+;      if ydim > 16 [set ydim -16] 
+;    ]
+;    set zdim zdim - 1
+;  ]
+;
+;  ;; set all earth patches to color [120 120 120 80]
+;  repeat 17
+;  [
+;    repeat 33
+;    [
+;      repeat 33
+;      [
+;        ask patch xdim ydim zdim
+;        [
+;          set hardness random 9
+;          set pcolor [ 120 120 120 80]
+;          set elevation pzcor
+;        ]
+;        
+;        set xdim xdim + 1
+;        if xdim > 16 [set xdim -16]
+;        tick
+;      ]
+;      set ydim ydim + 1
+;      if ydim > 16 [set ydim -16] 
+;    ]
+;    set zdim zdim - 1
+;  ]
+;  
+;  
+;end
 
 to coalesce-terrain
   
@@ -269,29 +313,40 @@ to coalesce-terrain
               if hardness = 0
               [
                 let cphardness hardness
-                let cpcolor pcolor
                 
                 let aphardness hardness
-                let apcolor pcolor
                 
                 ask patch-at-heading-pitch-and-distance 0 90 1
                 [
                   set aphardness hardness
-                  set apcolor pcolor
                   
-                  set pcolor cpcolor
                   set hardness cphardness
                   
-                ]
+                ]  ;; ask
                 
-                set pcolor apcolor
                 set hardness aphardness
-              ]   
-            ]
+              ]  ;; if hardness = 0  
+              
+            ] ;; if pzcor < 0
             
-          ]
+            set elevation pzcor
+
+          ]  ;; ask patches
           
-        ]
+        ] ;; repeat 16
+        
+        ask patches
+        [
+          ifelse (hardness <= 0)
+          [
+            set pcolor [ 0 0 0 0 ]
+          ]
+          ;; else hardness > 0
+          [
+            set pcolor [ 120 120 120 80 ]
+          ]
+        ] ;; ask patches
+        
  
 end
 @#$#@#$#@
@@ -399,6 +454,57 @@ BUTTON
 337
 Coalesce Terrain
 coalesce-terrain
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+196
+200
+306
+233
+Hide Patches
+hide-patches
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+196
+239
+310
+272
+Show Patches
+show-patches
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+258
+306
+392
+339
+Smoothe Terrain
+diffuse elevation 0.9
 NIL
 1
 T
