@@ -87,11 +87,14 @@ to accumulate-droplets
       set lasty ycor
       set lastz zcor
       
+      pd
+      
       downhill4 saturation
       
+      pu
       
-      if ( (lastx = 16 and xcor = -1) or (lastx = -1 and xcor = 16) or
-         (lasty = 16 and ycor = -1) or (lasty = -1 and ycor = 16) )
+      if ( (lastx = 16 and xcor = -16) or (lastx = -16 and xcor = 16) or
+         (lasty = 16 and ycor = -16) or (lasty = -16 and ycor = 16) )
       [
         die 
       ] ;; if ( (lastx...     
@@ -115,13 +118,23 @@ to distribute-droplets
   
   ask turtles
   [
-      downhill4 elevation
-      
-      if ( (lastx = 16 and xcor = -1) or (lastx = -1 and xcor = 16) or
-         (lasty = 16 and ycor = -1) or (lasty = -1 and ycor = 16) )
-      [
-        die 
-      ] ;; if ( (lastx....
+    
+    pd
+    downhill4 hardness
+    pu  
+    
+    if (hardness = 0)
+    [
+      pd
+      set zcor (zcor - 1)
+      pu
+    ]
+    
+    if ( (lastx = 16 and xcor = -16) or (lastx = -16 and xcor = 16) or
+       (lasty = 16 and ycor = -16) or (lasty = -16 and ycor = 16) )
+    [
+      die 
+    ] ;; if ( (lastx....
       
   ] ;; ask turtles
 
@@ -234,6 +247,7 @@ to show-patches
     if (hardness > 0)
     [
       set pcolor [ 120 120 120 80] 
+      
     ]
   ]
   
@@ -241,65 +255,8 @@ to show-patches
 end
 
 
-;to create-terrain
-;  let xdim -16
-;  let ydim -16
-;  let zdim 16
-;
-;  ;; set all atmospheric patches to color [0 0 0 0]
-;  repeat 16
-;  [
-;    repeat 33
-;    [
-;      repeat 33
-;      [
-;        ask patch xdim ydim zdim
-;        [
-;          set pcolor [0 0 0 0]
-;          set elevation pzcor
-;          set hardness -255
-;        ]
-;        
-;        set xdim xdim + 1
-;        if xdim > 16 [set xdim -16]
-;        tick
-;      ]
-;      set ydim ydim + 1
-;      if ydim > 16 [set ydim -16] 
-;    ]
-;    set zdim zdim - 1
-;  ]
-;
-;  ;; set all earth patches to color [120 120 120 80]
-;  repeat 17
-;  [
-;    repeat 33
-;    [
-;      repeat 33
-;      [
-;        ask patch xdim ydim zdim
-;        [
-;          set hardness random 9
-;          set pcolor [ 120 120 120 80]
-;          set elevation pzcor
-;        ]
-;        
-;        set xdim xdim + 1
-;        if xdim > 16 [set xdim -16]
-;        tick
-;      ]
-;      set ydim ydim + 1
-;      if ydim > 16 [set ydim -16] 
-;    ]
-;    set zdim zdim - 1
-;  ]
-;  
-;  
-;end
 
 to coalesce-terrain
-  
-
         
         ;; if hardness of belowpatch = 0, swap the color and hardness of the currpatch
         ;; with belowpatch, simulating "sinking"
