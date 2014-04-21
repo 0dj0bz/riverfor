@@ -1,29 +1,29 @@
 breed [ droplets droplet ]
 
-globals [agentcolor]
+globals [agentcolor ]
 
 ;; patches represent the underlying ground in three dimensions
 ;; soil has the following properties:
 ;; hardness  - represents the resistance to erosion by water - 0 to 1
 ;; pcteroded - the amount of the patch eroded by water - 0 to 1
 
-patches-own [hardness saturation elevation]
+patches-own [hardness saturation elevation ptimestagnant]
 
 ;; Agents
 ;; Droplet - a droplet of water that falls as precipitation.  
 ;; A droplet has the following properties:
 ;; viscosity - represents the ease with which water flows
 ;; velocity  - represents the speed with which a water droplet flows
-droplets-own [velocity lastx lasty lastz ]
+droplets-own [velocity lastx lasty lastz timestagnant]
 
 
 to simulate
   
-   create-droplets 1
+   create-droplets rainfallvolume
    [
      setxyz (round random-xcor) (round random-ycor) 16
      set color agentcolor
-     
+     set timestagnant 0
      set shape "circle"
      set velocity [0 0 -9]
    ]
@@ -36,6 +36,19 @@ to simulate
    ask patches
    [
      set saturation (count turtles-here)
+     
+     ifelse (saturation = 0)
+     [
+       set ptimestagnant (ptimestagnant + 1)
+     ]
+     [
+       set ptimestagnant 0
+     ]
+     
+     if ( (ptimestagnant >= stagnationtime) and (pcolor = [ 0 255 255 40 ] ) )
+     [
+       set pcolor [ 0 0 0 0 ]
+     ]
    ]
 
    tick
@@ -49,9 +62,13 @@ to update-drops
   
   ask droplets
   [
-    if (hardness <= 0 and velocity = [0 0 -9])
+    ifelse (hardness <= 0 and velocity = [0 0 -9])
     [
       set zcor zcor - 1
+      ;set timestagnant 0
+    ]
+    [
+      set hardness (hardness - 0.01)
     ]
 
     accumulate-droplets
@@ -81,11 +98,15 @@ to accumulate-droplets
       set lasty ycor
       set lastz zcor
       
-      pd
+      ;pd
       
       downhill4 saturation
-      ;;set pcolor blue
-      pu
+      if (hardness > 0)
+      [
+        
+        set pcolor [ 0 255 255 40 ]
+      ]
+      ;pu
       
       if ( (lastx = 16 and xcor = -16) or (lastx = -16 and xcor = 16) or
          (lasty = 16 and ycor = -16) or (lasty = -16 and ycor = 16) )
@@ -112,19 +133,35 @@ to distribute-droplets
   
   ask turtles
   [
-    
-    pd
+      set lastx xcor
+      set lasty ycor
+      set lastz zcor
+
+    ;pd
     downhill4 hardness
-    pu  
+    if (hardness > 0)
+    [
+      set pcolor [ 0 255 255 40 ]
+    ]
+    ;pu  
     
-    ;;set pcolor blue
+    
     
     if (hardness = 0)
     [
-      pd
+      
       set zcor (zcor - 1)
-      pu
-      ;;set pcolor blue
+
+    ]
+    
+    if ( (lastx = xcor) and (lasty = ycor) and (lastz = zcor) )
+    [
+      set timestagnant (timestagnant + 1)
+    ]
+    
+    if (timestagnant >= evaporationtime)
+    [
+      die
     ]
     
     if ( (lastx = 16 and xcor = -16) or (lastx = -16 and xcor = 16) or
@@ -228,7 +265,7 @@ to hide-patches
  
   ask patches 
   [
-    if ((hardness > 0) and (pcolor != blue) )
+    if ((hardness > 0) and (pcolor != [ 0 255 255 40 ]) )
     [
       set pcolor [ 0 0 0 0 ] 
     ]
@@ -241,7 +278,7 @@ to show-patches
   
   ask patches 
   [
-    if ( (hardness > 0) and (pcolor != blue) )
+    if ( (hardness > 0) and (pcolor != [ 0 255 255 40 ]) )
     [
       set pcolor [ 120 120 120 80]  
       
@@ -312,7 +349,7 @@ ask patches
   [
     if (hardness <= 0)
     [
-      set pcolor [ 0 0 128 80 ]
+      set pcolor [ 0 0 128 40 ]
     ]
   ]  
 ] ;; ask patches
@@ -500,6 +537,51 @@ NIL
 NIL
 NIL
 1
+
+SLIDER
+412
+87
+584
+120
+stagnationtime
+stagnationtime
+0
+300
+82
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+417
+43
+589
+76
+evaporationtime
+evaporationtime
+0
+300
+183
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+414
+146
+586
+179
+rainfallvolume
+rainfallvolume
+0
+100
+24
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
