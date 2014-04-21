@@ -49,19 +49,13 @@ to update-drops
   
   ask droplets
   [
-    let curredval item 0 pcolor
-    
-    ;;if (curredval = 0 and velocity = [0 0 -9])
     if (hardness <= 0 and velocity = [0 0 -9])
     [
       set zcor zcor - 1
     ]
 
-
-
     accumulate-droplets
-    
-    
+        
   ]
   
   ask patches
@@ -90,7 +84,7 @@ to accumulate-droplets
       pd
       
       downhill4 saturation
-      
+      ;;set pcolor blue
       pu
       
       if ( (lastx = 16 and xcor = -16) or (lastx = -16 and xcor = 16) or
@@ -123,11 +117,14 @@ to distribute-droplets
     downhill4 hardness
     pu  
     
+    ;;set pcolor blue
+    
     if (hardness = 0)
     [
       pd
       set zcor (zcor - 1)
       pu
+      ;;set pcolor blue
     ]
     
     if ( (lastx = 16 and xcor = -16) or (lastx = -16 and xcor = 16) or
@@ -231,7 +228,7 @@ to hide-patches
  
   ask patches 
   [
-    if (hardness > 0)
+    if ((hardness > 0) and (pcolor != blue) )
     [
       set pcolor [ 0 0 0 0 ] 
     ]
@@ -244,9 +241,9 @@ to show-patches
   
   ask patches 
   [
-    if (hardness > 0)
+    if ( (hardness > 0) and (pcolor != blue) )
     [
-      set pcolor [ 120 120 120 80] 
+      set pcolor [ 120 120 120 80]  
       
     ]
   ]
@@ -260,14 +257,14 @@ to coalesce-terrain
         
         ;; if hardness of belowpatch = 0, swap the color and hardness of the currpatch
         ;; with belowpatch, simulating "sinking"
-        repeat 16
+        repeat 34
         [
           ask patches 
           [
             if pzcor < 0
             [
               
-              if hardness = 0
+              if hardness <= 0
               [
                 let cphardness hardness
                 
@@ -306,6 +303,21 @@ to coalesce-terrain
         
  
 end
+
+to find-lurking-0-patches
+
+ask patches
+[
+  if (pzcor < 0)
+  [
+    if (hardness <= 0)
+    [
+      set pcolor [ 0 0 128 80 ]
+    ]
+  ]  
+] ;; ask patches
+end
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 0
@@ -462,6 +474,23 @@ BUTTON
 339
 Smoothe Terrain
 diffuse elevation 0.9
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+445
+212
+554
+245
+Find Lurkers
+find-lurking-0-patches
 NIL
 1
 T
