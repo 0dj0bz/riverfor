@@ -19,7 +19,7 @@ droplets-own [velocity lastx lasty lastz timestagnant]
 
 to simulate
   
-  if (timesincecoalesce > 100)
+  if (timesincecoalesce > 10)
   [
     coalesce-terrain
     set timesincecoalesce 0
@@ -111,7 +111,10 @@ to accumulate-droplets
       if (hardness > 0)
       [
         
-        set pcolor [ 0 255 255 40 ]
+        set pcolor [ 0 0 255 40 ]
+        set hardness (hardness - 0.01)
+
+        
       ]
       ;pu
       
@@ -148,7 +151,7 @@ to distribute-droplets
     downhill4 hardness
     if (hardness > 0)
     [
-      set pcolor [ 0 255 255 40 ]
+      set pcolor [ 0 0 255 40 ]
     ]
     ;pu  
     
@@ -257,6 +260,8 @@ to setup
   
   coalesce-terrain
   
+  reset-ticks
+  
 end
 
 to hide-agents
@@ -275,7 +280,7 @@ to hide-patches
  
   ask patches 
   [
-    if ((hardness > 0) and (pcolor != [ 0 255 255 40 ]) )
+    if ((hardness > 0) and (pcolor != [ 0 0 255 40 ]) )
     [
       set pcolor [ 0 0 0 0 ] 
     ]
@@ -288,7 +293,7 @@ to show-patches
   
   ask patches 
   [
-    if ( (hardness > 0) and (pcolor != [ 0 255 255 40 ]) )
+    if ( (hardness > 0) and (pcolor != [ 0 0 255 40 ]) )
     [
       set pcolor [ 120 120 120 80]  
       
@@ -313,7 +318,7 @@ to coalesce-terrain
               
               if hardness <= 0
               [
-                let cphardness hardness
+                let cphardness 0
                 
                 let aphardness hardness
                 
@@ -326,7 +331,7 @@ to coalesce-terrain
                 ]  ;; ask
                 
                 set hardness aphardness
-              ]  ;; if hardness = 0  
+              ]  ;; if hardness <= 0  
               
             ] ;; if pzcor < 0
             
@@ -345,12 +350,36 @@ to coalesce-terrain
           ;; else hardness > 0
           [
             set pcolor [ 120 120 120 80 ]
+            ;set pcolor 10 - (1 - int(pzcor / 2) )
           ]
         ] ;; ask patches
         
  
 end
 
+to false-shade
+  
+  ask patches
+  [
+    if ( (pzcor <= 0) and (pcolor = [ 120 120 120 80 ]) )
+    [
+      set pcolor (lput 20 (extract-rgb(10 - (1 - int(pzcor / 2) )))  )
+    ]
+  ] ;; ask patches
+  
+end
+
+to false-shade-solid
+  
+  ask patches
+  [
+    if ( (pzcor <= 0) and (pcolor = [ 120 120 120 80 ]) )
+    [
+      set pcolor (lput 128 (extract-rgb(10 - (1 - int(pzcor / 2) )))  )
+    ]
+  ] ;; ask patches
+  
+end
 to find-lurking-0-patches
 
 ask patches
@@ -396,10 +425,10 @@ ticks
 30.0
 
 BUTTON
-62
-115
-173
-148
+13
+10
+124
+43
 Setup
 setup
 NIL
@@ -413,10 +442,10 @@ NIL
 1
 
 BUTTON
-61
-157
-173
-190
+12
+52
+124
+85
 Make it rain...
 simulate
 T
@@ -430,10 +459,10 @@ NIL
 1
 
 BUTTON
-61
-199
-173
-232
+12
+94
+124
+127
 Hide Agents
 hide-agents
 NIL
@@ -447,10 +476,10 @@ NIL
 1
 
 BUTTON
-62
-237
-173
-270
+13
+132
+124
+165
 Show Agents
 show-agents
 NIL
@@ -464,10 +493,10 @@ NIL
 1
 
 BUTTON
-64
-304
-199
-337
+11
+310
+146
+343
 Coalesce Terrain
 coalesce-terrain
 NIL
@@ -481,10 +510,10 @@ NIL
 1
 
 BUTTON
-196
-200
-306
-233
+147
+95
+257
+128
 Hide Patches
 hide-patches
 NIL
@@ -498,10 +527,10 @@ NIL
 1
 
 BUTTON
-196
-239
-310
-272
+147
+134
+261
+167
 Show Patches
 show-patches
 NIL
@@ -514,75 +543,41 @@ NIL
 NIL
 1
 
-BUTTON
-258
-306
-392
-339
-Smoothe Terrain
-diffuse elevation 0.9
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-445
-212
-554
-245
-Find Lurkers
-find-lurking-0-patches
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 SLIDER
-412
-87
-584
-120
+288
+67
+460
+100
 stagnationtime
 stagnationtime
 0
 300
-82
+191
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-417
-43
-589
-76
+288
+23
+460
+56
 evaporationtime
 evaporationtime
 0
 300
-183
+187
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-414
-146
-586
-179
+288
+112
+460
+145
 rainfallvolume
 rainfallvolume
 0
@@ -592,6 +587,40 @@ rainfallvolume
 1
 NIL
 HORIZONTAL
+
+BUTTON
+159
+270
+262
+303
+False Shade
+false-shade
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+158
+310
+260
+343
+Solid Shade
+false-shade-solid
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
